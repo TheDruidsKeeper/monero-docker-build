@@ -52,6 +52,14 @@ jobs:
           release=$(git describe --tags)
           echo "Building release $release"
           echo "::set-output name=release::$release"
+      # https://stackoverflow.com/a/15346537
+      # Because we're building this as a submodule, rather than it's own repo we do not have a `.git` folder
+      # that is apparently required by the dockerfile. This will delete the `.git` file, and reinit an empty repo
+      - name: Workaround for building repo as a submodule
+        run: |
+          cd monero
+          rm .git
+          git init
       # Build and push Docker image with Buildx (don't push on PR) https://github.com/docker/build-push-action
       - name: Build and push Docker image
         id: build-and-push
