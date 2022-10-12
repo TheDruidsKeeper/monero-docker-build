@@ -1,0 +1,25 @@
+name: Update Submodule
+on:
+  schedule:
+    - cron: '0 0 * * 3'
+  workflow_dispatch:
+jobs:
+  update-submodule:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+      - name: Update submodule to latest release
+        run: |
+          lastversion() { basename $(curl -fs -o/dev/null -w %{redirect_url} $1/releases/latest); }
+          release=$(lastversion https://github.com/monero-project/monero)
+          git config --global user.name 'TheDruidsKeeper'
+          git config --global user.email 'TheDruidsKeeper@users.noreply.github.com'
+          cd monero
+          git fetch --tags
+          git checkout $(git rev-list -n 1 tags/$release)
+          cd ..
+          git diff-index --quiet HEAD || git commit -am "Automatic update to release $release"
+          git push
